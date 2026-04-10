@@ -3,17 +3,24 @@ query RunInput {
     lines {
       id
       quantity
+      cost {
+        amountPerQuantity {
+          amount
+          currencyCode
+        }
+      }
       merchandise {
         __typename
         ... on ProductVariant {
           id
-          price {
-            amount
-            currencyCode
-          }
           product {
             title
-            tags
+            # Tag-based filtering: merchants mark products by adding a
+            # metafield  namespace="custom"  key="on_sale"  value="true"
+            # Leave metafield_key empty in config to discount all products.
+            onSale: metafield(namespace: "custom", key: "on_sale") {
+              value
+            }
           }
         }
       }
