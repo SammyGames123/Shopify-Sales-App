@@ -1,0 +1,16 @@
+api_version = "2024-07"
+
+[[extensions]]
+type = "function"
+name = "Price Threshold Discount"
+handle = "price-threshold-discount"
+
+[extensions.build]
+command = "npm run build"
+path = "dist/index.wasm"
+watch = ["src/**/*.js"]
+
+[[extensions.targeting]]
+module = "./src/run.js"
+export = "run"
+input_query = "./src/run.graphql"

@@ -1,0 +1,26 @@
+query RunInput {
+  cart {
+    lines {
+      id
+      quantity
+      merchandise {
+        __typename
+        ... on ProductVariant {
+          id
+          price {
+            amount
+            currencyCode
+          }
+          product {
+            title
+          }
+        }
+      }
+    }
+  }
+  discountNode {
+    metafield(namespace: "$app:price-threshold-discount", key: "configuration") {
+      value
+    }
+  }
+}

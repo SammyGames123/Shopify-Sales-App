@@ -1,0 +1,14 @@
+{
+  "name": "price-threshold-discount",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "javy compile -d -o dist/index.wasm src/run.js",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@shopify/shopify_function": "^1.1.1",
+    "javy": "^0.3.2",
+    "vitest": "^1.6.0"
+  }
+}
