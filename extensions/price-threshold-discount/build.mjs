@@ -99,11 +99,19 @@ function gunzipFile(src, dest) {
 
 // ── 3. Auto-download Javy ─────────────────────────────────────────────────────
 
+// Javy v1.4.0 is the last release supporting `compile -d`, which
+// produces a small (<256KB) dynamically-linked WASM compatible with
+// Shopify Functions. Later versions changed the CLI and require a
+// platform plugin that only Shopify's runtime can supply.
+const JAVY_VERSION = "v1.4.0";
+
 async function downloadJavy() {
   if (existsSync(JAVY_CACHE)) return JAVY_CACHE;
 
-  console.log("Fetching Javy release info from GitHub...");
-  const json    = await httpsGetString("https://api.github.com/repos/bytecodealliance/javy/releases/latest");
+  console.log(`Fetching Javy ${JAVY_VERSION} from GitHub...`);
+  const json    = await httpsGetString(
+    `https://api.github.com/repos/bytecodealliance/javy/releases/tags/${JAVY_VERSION}`
+  );
   const release = JSON.parse(json);
 
   const arch    = os.arch() === "arm64" ? "aarch64" : "x86_64";
@@ -113,7 +121,7 @@ async function downloadJavy() {
     const n = a.name.toLowerCase();
     return n.includes(arch) && n.includes(plat);
   });
-  if (!asset) throw new Error(`No Javy asset found for ${arch}-${plat}`);
+  if (!asset) throw new Error(`No Javy ${JAVY_VERSION} asset for ${arch}-${plat}`);
 
   const assetName = asset.name;
   const dlPath    = join(DL_DIR, assetName);
@@ -186,23 +194,10 @@ Install Javy manually then restart your terminal:
   console.log(`Compiling  : ${INPUT}`);
   console.log(`Output     : ${OUTPUT}`);
 
-  // Try different compile invocations for compatibility across Javy versions
-  const attempts = [
-    ["compile", "-d", "-o", OUTPUT, INPUT],   // v1.x dynamic
-    ["compile", "-o", OUTPUT, INPUT],           // v1.x static
-    ["build", "-C", "dynamic=y", "-o", OUTPUT, INPUT], // v2+
-    ["build", "-o", OUTPUT, INPUT],             // v2+ static
-  ];
-
-  for (const argv of attempts) {
-    try {
-      execFileSync(javyBin, argv, { stdio: "inherit" });
-      console.log("\nBuild succeeded.");
-      return;
-    } catch { /* try next */ }
-  }
-
-  throw new Error("All Javy compile attempts failed. The downloaded binary may be corrupt — delete .javy-cache/ and retry.");
+  // v1.4.0 uses `compile -d` to produce a small dynamically-linked WASM
+  // that Shopify's Functions runtime provides the JS engine for (<256KB).
+  execFileSync(javyBin, ["compile", "-d", "-o", OUTPUT, INPUT], { stdio: "inherit" });
+  console.log("\nBuild succeeded.");
 }
 
 main().catch(e => { console.error(e.message); process.exit(1); });
