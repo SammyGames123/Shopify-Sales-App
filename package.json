@@ -12,7 +12,6 @@
     "test": "npm run test --workspaces --if-present"
   },
   "devDependencies": {
-    "@shopify/cli": "^3.67.0",
-    "@shopify/app": "^3.67.0"
+    "@shopify/cli": "3"
   }
 }
