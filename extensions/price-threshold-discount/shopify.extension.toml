@@ -5,11 +5,6 @@ type = "function"
 name = "Price Threshold Discount"
 handle = "price-threshold-discount"
 
-[extensions.build]
-command = "npm run build"
-path = "dist/index.wasm"
-watch = ["src/**/*.js"]
-
 [[extensions.targeting]]
 target = "purchase.product-discount.run"
 module = "./src/run.js"
