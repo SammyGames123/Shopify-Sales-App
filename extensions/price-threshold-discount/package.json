@@ -3,9 +3,11 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
+    "build": "node -e \"require('fs').mkdirSync('dist',{recursive:true})\" && javy compile -d -o dist/index.wasm src/run.js",
     "test": "vitest run"
   },
   "devDependencies": {
+    "javy": "^0.3.0",
     "vitest": "^1.6.0"
   }
 }
