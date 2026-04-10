@@ -1,8 +1,10 @@
 /**
  * Price Threshold Discount Function
  *
- * Discounts any product variant whose original price is strictly below
- * `priceThreshold` down to `discountedPrice`.
+ * Discounts product variants that:
+ *   1. Have a price strictly below `priceThreshold`, AND
+ *   2. Match at least one tag in `tags` (if `tags` is non-empty).
+ *      When `tags` is empty or omitted, all products are eligible.
  *
  * Configuration is read from the discount node metafield
  * (namespace: "$app:price-threshold-discount", key: "configuration").
@@ -10,14 +12,37 @@
  *
  * Metafield value format (JSON string):
  * {
- *   "price_threshold": 49.96,   // items BELOW this price are on sale
- *   "discounted_price": 25.00   // the sale price applied to those items
+ *   "price_threshold": 49.96,        // items BELOW this price are eligible
+ *   "discounted_price": 25.00,       // the fixed sale price applied
+ *   "tags": ["sale", "clearance"]    // only discount products with these tags
+ *                                    // omit or use [] to target ALL products
  * }
  */
 
-// ── Defaults (used when no metafield configuration is found) ─────────────────
+// ── Defaults ──────────────────────────────────────────────────────────────────
 const DEFAULT_PRICE_THRESHOLD = 49.96;
 const DEFAULT_DISCOUNTED_PRICE = 25.00;
+// Empty by default → no tag filter (all products are eligible)
+const DEFAULT_TAGS = [];
+
+/**
+ * Returns true when the product should be considered for discounting.
+ * If `allowedTags` is empty every product passes.
+ * Otherwise the product must have at least one tag in `allowedTags`
+ * (case-insensitive comparison).
+ *
+ * @param {string[]} productTags  - tags on the Shopify product
+ * @param {string[]} allowedTags  - tags configured by the merchant
+ * @returns {boolean}
+ */
+function matchesTags(productTags, allowedTags) {
+  if (allowedTags.length === 0) return true;
+
+  const normalised = productTags.map((t) => t.toLowerCase());
+  return allowedTags.some((allowed) =>
+    normalised.includes(allowed.toLowerCase())
+  );
+}
 
 /**
  * @param {RunInput} input
@@ -27,6 +52,7 @@ export function run(input) {
   // ── Load configuration ──────────────────────────────────────────────────────
   let priceThreshold = DEFAULT_PRICE_THRESHOLD;
   let discountedPrice = DEFAULT_DISCOUNTED_PRICE;
+  let allowedTags = DEFAULT_TAGS;
 
   const rawConfig = input?.discountNode?.metafield?.value;
   if (rawConfig) {
@@ -37,6 +63,9 @@ export function run(input) {
       }
       if (typeof config.discounted_price === "number") {
         discountedPrice = config.discounted_price;
+      }
+      if (Array.isArray(config.tags)) {
+        allowedTags = config.tags.filter((t) => typeof t === "string");
       }
     } catch {
       // Malformed metafield — fall back to defaults
@@ -50,11 +79,18 @@ export function run(input) {
     // Only ProductVariants carry a price; skip gift cards etc.
     if (line.merchandise.__typename !== "ProductVariant") continue;
 
+    const productTags = line.merchandise.product?.tags ?? [];
     const originalPrice = parseFloat(line.merchandise.price.amount);
 
-    // Apply discount only when the item is below the threshold AND
-    // the discounted price would actually be lower than the original.
-    if (originalPrice < priceThreshold && originalPrice > discountedPrice) {
+    // Conditions:
+    //  • product must match at least one allowed tag (or no tag filter set)
+    //  • price must be below the threshold
+    //  • discounted price must actually be lower than the original price
+    if (
+      matchesTags(productTags, allowedTags) &&
+      originalPrice < priceThreshold &&
+      originalPrice > discountedPrice
+    ) {
       const discountAmount = (originalPrice - discountedPrice).toFixed(2);
 
       discounts.push({
