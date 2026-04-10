@@ -6,6 +6,7 @@ name = "Price Threshold Discount"
 handle = "price-threshold-discount"
 
 [[extensions.targeting]]
+target = "purchase.product-discount.run"
 module = "./src/run.js"
 export = "run"
 input_query = "./src/run.graphql"
