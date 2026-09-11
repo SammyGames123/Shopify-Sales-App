@@ -1,11 +1,12 @@
 name = "shopify-sales-app"
-client_id = "YOUR_CLIENT_ID"
+client_id = "024d94a593599290b3ab330802a3bb96"
 application_url = "https://YOUR_APP_URL.com"
 embedded = true
 
 [build]
 automatically_update_urls_on_dev = true
-dev_store_url = "YOUR_DEV_STORE.myshopify.com"
+include_config_on_deploy = true
+dev_store_url = "imagine-fashion-wholesale.myshopify.com"
 
 [access_scopes]
 scopes = "write_discounts,read_discounts,read_products"
@@ -18,7 +19,7 @@ redirect_urls = [
 ]
 
 [webhooks]
-api_version = "2024-07"
+api_version = "2026-07"
 
 [pos]
 embedded = false
