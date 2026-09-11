@@ -1,0 +1,9 @@
+query RunInput {
+  locations {
+    handle
+    name
+    localPickup {
+      enabled
+    }
+  }
+}
