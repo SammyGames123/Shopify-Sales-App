@@ -1,0 +1,17 @@
+api_version = "unstable"
+
+[[extensions]]
+type = "function"
+name = "Southport Local Pickup"
+handle = "southport-local-pickup"
+
+[extensions.build]
+command = "npm run build"
+path = "dist/index.wasm"
+watch = ["src/**/*.js", "src/**/*.graphql"]
+
+[[extensions.targeting]]
+target = "purchase.local-pickup-delivery-option-generator.run"
+module = "./src/run.js"
+export = "run"
+input_query = "./src/run.graphql"
